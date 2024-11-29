@@ -1,0 +1,13 @@
+aws iam create-role \
+    --role-name CodePipelineServiceRole \
+    --assume-role-policy-document file://codepipeline-trust-policy.json
+
+aws iam attach-role-policy \
+    --role-name CodePipelineServiceRole \
+    --policy-arn arn:aws:iam::aws:policy/AWSCodePipelineFullAccess
+
+aws codepipeline create-pipeline \
+    --pipeline-name Finance-App-Pipeline \
+    --role-arn arn:aws:iam::012345678901:role/CodePipelineServiceRole \
+    --artifact-store type=S3,location=finance-app-build-artifacts \
+    --stages file://stages.json

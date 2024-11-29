@@ -1,0 +1,77 @@
+[
+  {
+    "name": "Source",
+    "actions": [
+      {
+        "name": "SourceAction",
+        "actionTypeId": {
+          "category": "Source",
+          "owner": "ThirdParty",
+          "provider": "GitHub",
+          "version": "1"
+        },
+        "configuration": {
+          "Owner": "AaronDimac",
+          "Repo": "Finance-App-Repo",
+          "Branch": "main",
+          "OAuthToken": "OUR_GITHUB_TOKEN"
+        },
+        "outputArtifacts": [
+          {
+            "name": "SourceArtifact"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Build",
+    "actions": [
+      {
+        "name": "BuildAction",
+        "actionTypeId": {
+          "category": "Build",
+          "owner": "AWS",
+          "provider": "CodeBuild",
+          "version": "1"
+        },
+        "configuration": {
+          "ProjectName": "Finance-App-Build"
+        },
+        "inputArtifacts": [
+          {
+            "name": "SourceArtifact"
+          }
+        ],
+        "outputArtifacts": [
+          {
+            "name": "BuildArtifact"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Deploy",
+    "actions": [
+      {
+        "name": "DeployAction",
+        "actionTypeId": {
+          "category": "Deploy",
+          "owner": "AWS",
+          "provider": "CodeDeploy",
+          "version": "1"
+        },
+        "configuration": {
+          "ApplicationName": "Finance-App-Deploy",
+          "DeploymentGroupName": "Finance-App-Group"
+        },
+        "inputArtifacts": [
+          {
+            "name": "BuildArtifact"
+          }
+        ]
+      }
+    ]
+  }
+]

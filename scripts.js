@@ -27,8 +27,8 @@ function OnSubmit() {
     div.innerHTML += "<br/>Invalid email format.";
   }
 
-  if(password.value.length > 100) {
-     div.innerHTML += "<br/>Password must be less than 100 characters.";
+  if(password.value.length > 50) {
+     div.innerHTML += "<br/>Password must be less than 50 characters.";
   } 
 
   if(password.value.length < 7) {
@@ -39,8 +39,9 @@ function OnSubmit() {
       div.innerHTML += "<br/>SIN must be 9 characters.";
   }
 
-  // if (!/^\d{9}$/.test(sin))
-  if(typeof sin.value === "number") {
-      div.innerHTML += "<br/>SIN must be a number.";
+  if (isNaN(sin.value)) {
+    div.innerHTML += "<br/>SIN must be all numbers.";
   }
 }
+
+  module.exports = { OnSubmit };

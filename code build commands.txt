@@ -1,0 +1,35 @@
+aws s3api create-bucket \
+    --bucket finance-app-build-artifacts-$(uuidgen | tr -d - | tr '[:upper:]' '[:lower:]') \
+    --region us-east-1 \
+    --create-bucket-configuration LocationConstraint=us-east-1
+
+aws s3api put-bucket-policy \
+    --bucket finance-app-build-artifacts \
+    --policy file://bucket-policy.json
+
+aws s3api put-bucket-versioning \
+    --bucket finance-app-build-artifacts \
+    --versioning-configuration Status=Enabled
+
+aws codebuild create-project \
+    --name "Finance-App-Build" \
+    --source "{\"type\": \"GITHUB\",\"location\": \"https://github.com/AaronDimac/Finance-App-Repo\"}" \
+    --artifacts "{\"type\": \"S3\",\"location\": \"arn:aws:s3:::finance-app-build-artifacts\"}" \
+    --environment "{\"type\": \"LINUX_CONTAINER\",\"image\": \"aws/codebuild/standard:6.0\",\"computeType\": \"BUILD_GENERAL1_SMALL\"}" \
+    --service-role "arn:aws:iam::<account-id>:role/CodeBuildServiceRole"
+
+aws iam create-role \
+    --role-name CodeBuildServiceRole \
+    --assume-role-policy-document file://trust-policy.json
+
+aws iam attach-role-policy \
+    --role-name CodeBuildServiceRole \
+    --policy-arn arn:aws:iam::aws:policy/AWSCodeBuildAdminAccess
+
+aws iam put-role-policy \
+    --role-name CodeBuildServiceRole \
+    --policy-name LambdaInvokePolicy \
+    --policy-document file://lambda-policy.json
+
+aws codebuild start-build \
+    --project-name "My-Finance-App"

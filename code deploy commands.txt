@@ -1,0 +1,43 @@
+aws deploy create-application \
+    --application-name Finance-App-Deploy \
+    --compute-platform Lambda
+
+aws lambda create-function \
+    --function-name "FinanceAppLambda" \
+    --runtime "nodejs18.x" \
+    --role "arn:aws:iam::012345678901:role/LambdaExecutionRole" \
+    --handler "index.handler" \
+    --code S3Bucket=finance-app-build-artifacts,S3Key=finance-app.zip
+
+aws deploy create-deployment-group \
+    --application-name Finance-App-Deploy \
+    --deployment-group-name Finance-App-Group \
+    --deployment-config-name CodeDeployDefault.LambdaAllAtOnce \
+    --service-role-arn arn:aws:iam::012345678901:role/CodeDeployServiceRole \
+    --target-lambda-deployment-configs FunctionName=FinanceAppLambda \
+    --github-location repository=Finance-App-Repo,commit-id=main
+
+aws iam create-role \
+    --role-name CodeDeployServiceRole \
+    --assume-role-policy-document file://codedeploy-trust-policy.json
+
+aws iam put-role-policy \
+    --role-name CodeDeployServiceRole \
+    --policy-name CodeDeployLambdaPolicy \
+    --policy-document file://codedeploy-policy.json
+
+aws apigatewayv2 create-api \
+    --name "FinanceAppAPI" \
+    --protocol-type "HTTP" \
+    --target arn:aws:lambda:us-east-1:012345678901:function:FinanceAppLambda
+
+aws lambda add-permission \
+    --function-name "FinanceAppLambda" \
+    --statement-id "APIGatewayInvokePermission" \
+    --action "lambda:InvokeFunction" \
+    --principal apigateway.amazonaws.com \
+    --source-arn "arn:aws:execute-api:us-east-1:012345678901:abc123/*"
+
+aws apigatewayv2 create-deployment \
+    --api-id abc123 \
+    --stage-name "prod"

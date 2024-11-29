@@ -1,0 +1,29 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - echo "Installing dependencies..."
+      - npm install  # Install required dependencies
+  build:
+    commands:
+      - echo "Running local tests..."
+      - node tests.js  # Execute the test script
+      - echo "Invoking Lambda function for additional testing..."
+      - aws lambda invoke \ # invokes lambda for testing purposes
+          --function-name "FinanceAppTestRunner" \
+          --payload '{}' \
+          output.json
+      - echo "Build complete and Lambda tests executed."  
+  post_build:
+    commands:
+      - echo "Build and tests complete. Preparing for deployment..."
+      - zip -r finance-app.zip .  # Package the application for deployment
+      - echo "Starting deployment via CodeDeploy..."
+      - aws deploy create-deployment \
+          --application-name Finance-App-Deploy \
+          --deployment-group-name Finance-App-Group \
+          --github-location repository=Finance-App-Repo,commit-id=$(git rev-parse HEAD)
+artifacts:
+  files:
+    - finance-app.zip
